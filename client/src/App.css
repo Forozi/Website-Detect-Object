@@ -1,0 +1,299 @@
+/* --- GLOBAL STYLES (DARK MODE & FONT) --- */
+body {
+    background-color: #1e1e1e; /* Nền tối */
+    color: #f0f0f0; /* Chữ sáng */
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1400px; /* Chiều rộng cho bố cục so sánh */
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box; /* Đảm bảo padding không làm tăng kích thước tổng thể */
+}
+
+h1 { 
+    text-align: center; 
+    color: #f0f0f0;
+    font-size: 2.2em;
+    padding-bottom: 20px;
+    margin-top: 0;
+}
+
+h2 { 
+    border-bottom: 2px solid #3e3e3e; 
+    padding-bottom: 8px; 
+    margin-top: 0;
+    font-size: 1.5em;
+    color: #f0f0f0;
+}
+
+/* --- MAIN LAYOUT FOR COMPARISON --- */
+.main-content-compare {
+    display: flex;
+    gap: 30px;
+}
+
+/* --- CONTROLS PANEL (Cột 1) --- */
+.controls-panel {
+    flex: 0 0 300px; /* Chiều rộng cố định */
+    padding: 20px;
+    border: 1px solid #3e3e3e;
+    border-radius: 8px;
+    background-color: #252526; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    height: fit-content; /* Chiều cao tự động theo nội dung */
+}
+
+/* --- VIDEO AREAS CONTAINER (Cột 2) --- */
+.video-and-output-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* Hàng trên cùng: INPUT & OUTPUT VIDEOS SIDE-BY-SIDE */
+.comparison-row {
+    display: flex;
+    gap: 30px;
+    flex-shrink: 0; /* Ngăn flex-item bị co lại */
+}
+
+/* Base style cho cả Input Preview Box và Output Playback Box */
+.input-preview-box,
+.output-playback-box {
+    flex: 1; /* Chiếm diện tích bằng nhau trong comparison-row */
+    padding: 20px;
+    border: 1px solid #3e3e3e;
+    border-radius: 8px;
+    max-height: 550px;
+    background-color: #252526;
+    position: relative; /* Để video player có thể absolute positioning */
+    display: flex;
+    flex-direction: column; /* Xếp chồng h2 và video/placeholder */
+}
+
+/* INPUT PREVIEW AREA SPECIFIC STYLES */
+.input-preview-box {
+    /* input-preview-box sẽ tự giãn theo chiều cao của comparison-row */
+}
+
+.video-input-area {
+    flex-grow: 1; /* Quan trọng: Làm cho khu vực input giãn hết chiều cao còn lại */
+    min-height: 300px; /* Chiều cao tối thiểu để hiển thị placeholder */
+    border: 2px dashed #666;
+    background-color: #1e1e1e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    margin-top: 15px; /* Khoảng cách với tiêu đề h2 */
+}
+
+.placeholder-text {
+    color: #ccc;
+    font-size: 1.2em;
+    padding: 20px;
+    text-align: center;
+}
+
+.video-player {
+    width: 100%;
+    height: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    position: absolute; /* Đảm bảo nó lấp đầy div cha */
+    top: 0;
+    left: 0;
+    border: none; /* Loại bỏ border mặc định của video */
+    margin: 0;
+}
+
+/* OUTPUT VIDEO PLAYBACK AREA SPECIFIC STYLES */
+.output-playback-box {
+    min-height: 400px; /* Chiều cao cố định cho video output */
+}
+
+.tracked-video {
+    max-height: 400px;
+    width: 100%;
+    height: 100%; /* Để video lấp đầyplayback-box */
+    display: block; 
+    border: none;
+    margin: 0;
+    object-fit: contain; /* Đảm bảo video hiển thị đẹp */
+}
+
+/* PLACEHOLDER FOR OUTPUT VIDEO */
+.video-placeholder {
+    width: 100%;
+    min-height: 300px; /* Chiều cao tương đương video khi có */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    margin-top: 15px; /* Khoảng cách với tiêu đề h2 */
+    border: 1px dashed #666; /* Giống placeholder input */
+    border-radius: 8px;
+}
+
+/* --- VIDEO LIST ROW (Hàng dưới cùng) --- */
+.video-list-row {
+    width: 100%; /* Chiếm toàn bộ chiều rộng của video-and-output-area */
+}
+
+.video-list-box-full {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #3e3e3e;
+    border-radius: 8px;
+    background-color: #252526;
+    overflow-y: auto;
+    max-height: 250px; /* Chiều cao cuộn cho danh sách */
+}
+
+.video-list-box-full h3 {
+    margin-top: 0;
+    font-size: 1.1em;
+    border-bottom: 1px dashed #444;
+    padding-bottom: 5px;
+    color: #ccc;
+}
+
+.video-list-box-full ul {
+    list-style: none;
+    padding: 0;
+}
+
+.video-list-box-full li {
+    padding: 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    font-size: 0.9em;
+    word-break: break-all;
+    transition: background-color 0.2s, color 0.2s;
+    color: #f0f0f0; /* Màu chữ mặc định */
+}
+
+.video-list-box-full li:hover {
+    background-color: #3e3e3e;
+    color: #8ab4f8; /* Màu xanh nhạt nổi bật khi rê chuột */
+}
+
+
+/* --- CONTROL ELEMENTS STYLES --- */
+.control-group {
+    margin-bottom: 20px;
+    padding: 10px 0;
+}
+
+.control-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #ccc;
+}
+
+/* Button Group (Car/Bus/Motorbike) */
+.button-group {
+    display: flex; /* Đảm bảo các nút xếp hàng ngang */
+}
+.button-group button {
+    padding: 10px 15px;
+    margin-right: 10px;
+    border: 1px solid #444;
+    background-color: #3e3e3e;
+    color: #f0f0f0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s, border-color 0.2s;
+    flex-grow: 1; /* Giúp các nút chia sẻ chiều rộng */
+}
+
+.button-group button.active {
+    background-color: #4CAF50; /* Màu xanh lá cây */
+    color: white;
+    border-color: #4CAF50;
+}
+.button-group button:not(.active):hover {
+    background-color: #555;
+    border-color: #666;
+}
+
+
+/* Slider/Input Styling */
+.slider-group span {
+    font-weight: normal;
+    color: #4CAF50; /* Màu xanh lá cây */
+    margin-left: 10px;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+input[type="number"] {
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    width: 100px;
+    background-color: #3e3e3e;
+    color: #f0f0f0;
+}
+
+/* Process Button */
+.process-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 15px;
+}
+
+.process-button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    color: #ccc;
+}
+
+/* --- STATUS/TIMER/NOTIFICATION --- */
+.status-timer {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #444; 
+    color: #ffc107; /* Màu vàng */
+    border: 1px solid #666;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.95em;
+}
+
+.notification {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.success-message {
+    background-color: #214d2e; /* Xanh lá sẫm */
+    color: #a7f3d0; /* Xanh lá nhạt */
+    border: 1px solid #3c6e4e;
+}
+
+/* Error message is already styled correctly */
+/* .error-message { ... } */
