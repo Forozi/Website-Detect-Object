@@ -4,7 +4,7 @@ import './App.css';
 
 const BACKEND_URL = 'http://localhost:3000/api/track';
 const VIDEOS_URL = 'http://localhost:3000/api/videos';
-const BASE_HOST = 'http://localhost:3000'; // Dùng để xây dựng URL video
+const BASE_HOST = 'http://localhost:3000';
 
 function App() {
     // --- State Management ---
@@ -15,8 +15,6 @@ function App() {
     const [occludeTime, setOccludeTime] = useState(1.0);
     const [trackedVideoUrl, setTrackedVideoUrl] = useState(null);
     const [videoList, setVideoList] = useState([]);
-
-    // Timer States
     const [loading, setLoading] = useState(false);
     const [startTime, setStartTime] = useState(null);
     const [elapsedTime, setElapsedTime] = useState(0);
@@ -31,7 +29,7 @@ function App() {
         { label: 'Motorbike', value: '3' },
     ];
 
-    // --- LOGIC: FETCH VIDEO LIST ---
+    // --- LOGIC FUNCTIONS ---
     const fetchVideoList = async () => {
         try {
             const response = await axios.get(VIDEOS_URL);
@@ -41,10 +39,8 @@ function App() {
         }
     };
     
-    // --- EFFECT: INITIAL LOAD & TIMER LOGIC ---
     useEffect(() => {
-        fetchVideoList(); // FETCH VIDEO LIST ON COMPONENT MOUNT
-
+        fetchVideoList();
         let timerInterval;
         if (loading && startTime) {
             timerInterval = setInterval(() => {
@@ -54,71 +50,35 @@ function App() {
             clearInterval(timerInterval);
         }
         return () => clearInterval(timerInterval);
-    }, [loading, startTime]); // Dependencies: loading and startTime
+    }, [loading, startTime]);
 
-    // --- Handlers ---
     const handleFileChange = (event) => {
       const file = event.target.files[0];
       if (file && file.type.startsWith('video/')) {
           setSelectedFile(file);
-          // Quan trọng: Tạo URL mới cho preview
           setPreviewUrl(URL.createObjectURL(file)); 
           setTrackedVideoUrl(null);
           setCompletionMessage(null);
           setError(null);
       } else {
-          setSelectedFile(null);
-          setPreviewUrl(null);
           alert("Please select a valid video file.");
       }
     };
+
     const handleRemoveVideo = () => {
-        // Thu hồi URL tạm thời của video preview để giải phóng bộ nhớ
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl); 
-        }
-        
-        // Reset tất cả các trạng thái liên quan đến input
+        if (previewUrl) URL.revokeObjectURL(previewUrl); 
         setSelectedFile(null);
         setPreviewUrl(null);
-        setTrackedVideoUrl(null); // Xóa video output cũ (nếu có)
+        setTrackedVideoUrl(null); 
         setCompletionMessage(null);
         setError(null);
-        
-        // Đảm bảo input file element được reset để có thể chọn lại cùng một file
-        if (fileInputRef.current) {
-            fileInputRef.current.value = null;
-        }
+        if (fileInputRef.current) fileInputRef.current.value = null;
     };
-    // 1. Handles file selection
-    // const handleFileChange = (event) => {
-    //     const file = event.target.files[0];
-    //     if (file && file.type.startsWith('video/')) {
-    //         setSelectedFile(file);
-    //         setPreviewUrl(URL.createObjectURL(file));
-    //         setTrackedVideoUrl(null);
-    //         setCompletionMessage(null);
-    //         setError(null);
-    //     } else {
-    //         setSelectedFile(null);
-    //         setPreviewUrl(null);
-    //         alert("Please select a valid video file.");
-    //     }
-    // };
 
-    // 2. Handles form submission and API call
     const handleProcessVideo = async () => {
-        if (!selectedFile) {
-            alert("Please upload a video file first.");
-            return;
-        }
-
+        if (!selectedFile) return;
         setLoading(true);
-        
-        // Ghi lại thời điểm BẮT ĐẦU API call (thời gian thực, không phải state)
         const apiCallStartTime = Date.now(); 
-        
-        // Khởi động các state hiển thị (dùng cho đồng hồ đếm ngược)
         setStartTime(apiCallStartTime); 
         setElapsedTime(0);
         setError(null);
@@ -135,43 +95,34 @@ function App() {
             const response = await axios.post(BACKEND_URL, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-
-            // Tính toán thời gian đã trôi qua chính xác dựa trên thời điểm API kết thúc
             const finalElapsedTime = ((Date.now() - apiCallStartTime) / 1000).toFixed(2);
 
             if (response.data.success) {
                 setTrackedVideoUrl(`${BASE_HOST}${response.data.videoUrl}`);
-                
-                // Sử dụng thời gian đã tính chính xác
-                setCompletionMessage(`Processing completed successfully in ${finalElapsedTime} seconds.`);
-                fetchVideoList(); // Cập nhật danh sách video
+                setCompletionMessage(`Completed in ${finalElapsedTime}s.`);
+                fetchVideoList(); 
             } else {
-                setError(response.data.error || 'Tracking process failed.');
+                setError(response.data.error || 'Failed.');
                 setCompletionMessage('Processing failed.');
             }
         } catch (err) {
-            console.error("API Error:", err);
-            setError("Could not connect to the backend server (Node.js/Python).");
+            setError("Connection error.");
             setCompletionMessage('Connection failed.');
+            console.error("Maybe connection error: ", err)
         } finally {
             setLoading(false);
-            setStartTime(null); // Dừng đồng hồ đếm ngược
+            setStartTime(null);
         }
     };
 
-    // 3. Handles selection of an existing output video
     const handleSelectExistingVideo = (url) => {
         setTrackedVideoUrl(url); 
-        setCompletionMessage(`Hiển thị video đã chọn từ thư mục Output.`);
+        setCompletionMessage(`Viewing history.`);
         setError(null);
     }
 
-    // --- UI Component: RENDER INPUT AREA ---
     const renderInputArea = () => (
-        <div 
-            className="video-input-area" 
-            onClick={() => fileInputRef.current.click()}
-        >
+        <div className="input-area-wrapper" onClick={() => fileInputRef.current.click()}>
             <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -184,152 +135,116 @@ function App() {
                     src={previewUrl} 
                     controls 
                     className="video-player"
-                    // Ngăn chặn video click mở lại dialog chọn file
                     onClick={(e) => e.stopPropagation()} 
                 />
             ) : (
                 <div className="placeholder-text">
-                    Click to Upload Video (MP4)
+                    Import a video
                 </div>
             )}
         </div>
     );
 
-    // --- UI: MAIN RENDER ---
+    // --- MAIN RENDER ---
     return (
         <div className="container">
-            <h1>DeepSORT Multi-Object Tracker</h1>
-
-            <div className="main-content-compare">
-                {/* Cột 1: CONTROLS PANEL */}
-                <div className="controls-panel">
-                    <h2>Tracking Controls</h2>
-
-                    {/* 1. Object Selection Buttons */}
-                    <div className="control-group">
-                        <label>Target Object:</label>
-                        <div className="button-group">
-                            {classOptions.map(option => (
-                                <button
-                                    key={option.value}
-                                    className={trackingClass === option.value ? 'active' : ''}
-                                    onClick={() => setTrackingClass(option.value)}
-                                >
-                                    {option.label}
-                                </button>
-                            ))}
-                        </div>
+            
+            {/* --- 1. SIDEBAR (CONTROLS) --- */}
+            <div className="sidebar">
+                <h1>Control Panel</h1>
+                
+                {/* Object Selection (Vertical) */}
+                <div className="control-group">
+                    <label>Target Object</label>
+                    <div className="button-group">
+                        {classOptions.map(option => (
+                            <button
+                                key={option.value}
+                                className={trackingClass === option.value ? 'active' : ''}
+                                onClick={() => setTrackingClass(option.value)}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
                     </div>
-
-                    {/* 2. Confidence Threshold Slider */}
-                    <div className="control-group slider-group">
-                        <label>Conf Threshold: <span>{confThreshold.toFixed(2)}</span></label>
-                        <input 
-                            type="range" 
-                            min="0.1" 
-                            max="0.9" 
-                            step="0.05" 
-                            value={confThreshold} 
-                            onChange={(e) => setConfThreshold(parseFloat(e.target.value))} 
-                        />
-                    </div>
-
-                    {/* 3. Occlude Time Input */}
-                    <div className="control-group slider-group">
-                        <label>Occlusion Time (s): <span>{occludeTime.toFixed(1)}</span></label>
-                        <input 
-                            type="number" 
-                            min="0.5" 
-                            max="5" 
-                            step="0.1" 
-                            value={occludeTime} 
-                            onChange={(e) => setOccludeTime(parseFloat(e.target.value))} 
-                            placeholder="Seconds"
-                        />
-                        <small>Auto-calculates DeepSORT MAX_AGE.</small>
-                    </div>
-
-                    {/* 4. Process Status & Timer */}
-                    <div className="control-group">
-                        {loading && (
-                            <div className="status-timer">
-                                Đang xử lý... Thời gian: **{elapsedTime} giây**
-                            </div>
-                        )}
-                        {completionMessage && (
-                            <div className={`notification ${error ? 'error-message' : 'success-message'}`}>
-                                {completionMessage}
-                            </div>
-                        )}
-                    </div>
-                    {/* 4. XÓA VIDEO BUTTON (NEW) */}
-                    {selectedFile && (
-                        <button 
-                            className="remove-video-button"
-                            onClick={handleRemoveVideo}
-                            disabled={loading}
-                        >
-                            Xóa Video Input Hiện tại
-                        </button>
-                    )}
-                    {/* 5. Process Button */}
-                    <button 
-                        className="process-button"
-                        onClick={handleProcessVideo} 
-                        disabled={loading || !selectedFile}
-                    >
-                        {loading ? 'PROCESSING VIDEO...' : 'START TRACKING PROCESS'}
-                    </button>
-
-                    {error && <div className="error-message">Error: {error}</div>}
                 </div>
 
-                {/* Cột 2: VIDEO DISPLAY AND OUTPUT AREA */}
-                <div className="video-and-output-area">
-                    
-                    {/* Hàng 1: OUTPUT (LEFT) và INPUT (RIGHT) - Dùng chung một container flex */}
-                    <div className="comparison-row"> 
-                        
-                        {/* 1. OUTPUT VIDEO (LEFT) */}
-                        <div className="output-playback-box"> 
-                            <h2>Tracked Video Output</h2>
-                            {trackedVideoUrl ? (
-                                <video controls className="tracked-video" src={trackedVideoUrl}>
-                                    Trình duyệt của bạn không hỗ trợ phát video.
-                                </video>
-                            ) : (
-                                <div className="video-placeholder">Chưa có video đầu ra được chọn</div>
-                            )}
-                        </div>
-                        
-                        {/* 2. INPUT VIDEO (RIGHT) */}
-                        <div className="input-preview-box-compare">
-                            <h2>Input Video Preview</h2>
+                {/* Threshold */}
+                <div className="control-group">
+                    <label>Confidence <span className="value-display">{confThreshold.toFixed(2)}</span></label>
+                    <input 
+                        type="range" min="0.1" max="0.9" step="0.05" 
+                        value={confThreshold} 
+                        onChange={(e) => setConfThreshold(parseFloat(e.target.value))} 
+                    />
+                </div>
+
+                {/* Occlusion */}
+                <div className="control-group">
+                    <label>Occlusion (s)</label>
+                    <input 
+                        type="number" min="0.5" max="5" step="0.1" 
+                        value={occludeTime} 
+                        onChange={(e) => setOccludeTime(parseFloat(e.target.value))} 
+                    />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="control-group" style={{border: 'none'}}>
+                    {selectedFile && (
+                        <button className="remove-video-button" onClick={handleRemoveVideo} disabled={loading}>
+                            Clear
+                        </button>
+                    )}
+                    <button className="process-button" onClick={handleProcessVideo} disabled={loading || !selectedFile}>
+                        {loading ? 'Running...' : 'Start'}
+                    </button>
+
+                    {loading && <div className="status-timer">⏱ {elapsedTime}s</div>}
+                    {completionMessage && <div className={`notification ${error ? 'error-message' : 'success-message'}`}>{completionMessage}</div>}
+                    {error && <div className="error-message">{error}</div>}
+                </div>
+            </div>
+
+            {/* --- 2. MAIN CONTENT AREA (RIGHT) --- */}
+            <div className="main-content">
+                
+                {/* A. VIDEOS ROW */}
+                <div className="layout-video-row">
+                    <div className="video-box">
+                        <h2>Input</h2>
+                        <div className="video-content-area">
                             {renderInputArea()}
                         </div>
                     </div>
-                    
-                    {/* Hàng 2: VIDEO LIST (Phải nằm dưới 2 video trên) */}
-                    <div className="video-list-row">
-                        <div className="video-list-box-full">
-                            <h3>Videos đã Xử lý</h3>
-                            {videoList.length === 0 ? (
-                                <p>Chưa có video nào được xử lý.</p>
+
+                    <div className="video-box">
+                        <h2>Output</h2>
+                        <div className="video-content-area" style={{ cursor: 'default' }}>
+                            {trackedVideoUrl ? (
+                                <video controls className="tracked-video" src={trackedVideoUrl} />
                             ) : (
-                                <ul>
-                                    {videoList.map((video) => (
-                                        <li 
-                                            key={video.name} 
-                                            onClick={() => handleSelectExistingVideo(`${BASE_HOST}${video.url}`)}
-                                        >
-                                            {video.name}
-                                        </li>
-                                    ))}
-                                </ul>
+                                <div className="placeholder-text" style={{borderStyle: 'dotted'}}>Waiting for output...</div>
                             )}
                         </div>
                     </div>
+                </div>
 
+                {/* B. VIDEO LIST (Below Videos) */}
+                <div className="video-list-container">
+                    <h3>📚 Processing History</h3>
+                    <ul className="video-list-ul">
+                        {videoList.length === 0 ? (
+                            <li style={{color: '#777', justifyContent: 'center'}}>No history available</li>
+                        ) : (
+                            videoList.map((video) => (
+                                <li key={video.name} onClick={() => handleSelectExistingVideo(`${BASE_HOST}${video.url}`)}>
+                                    <span>🎬 {video.name}</span>
+                                    <span style={{color: '#888'}}>Replay ▶</span>
+                                </li>
+                            ))
+                        )}
+                    </ul>
                 </div>
 
             </div>
