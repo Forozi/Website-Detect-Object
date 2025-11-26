@@ -7,7 +7,6 @@ const VIDEOS_URL = 'http://localhost:3000/api/videos';
 const BASE_HOST = 'http://localhost:3000';
 
 function App() {
-    // --- State Management ---
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [trackingClass, setTrackingClass] = useState('2');
@@ -34,6 +33,8 @@ function App() {
         try {
             const response = await axios.get(VIDEOS_URL);
             setVideoList(response.data.reverse());
+
+            console.log("Frontend received:", response.data); // <--- Thêm dòng này để soi
         } catch (error) {
             console.error("Failed to fetch video list:", error);
         }
