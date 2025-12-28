@@ -229,7 +229,8 @@ input[type="number"] {
     border: 1px solid #3e3e3e;
     padding: 15px;
     
-    min-height: 200px; 
+    /* min-height: 200px;  */
+    max-height: 400px;
     
     display: flex;
     flex-direction: column;
@@ -253,7 +254,7 @@ input[type="number"] {
 }
 
 .video-list-ul li {
-    padding: 12px;
+    padding: 8px 12px;
     border-bottom: 1px solid #333;
     cursor: pointer;
     display: flex;

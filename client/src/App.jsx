@@ -9,7 +9,7 @@ const BASE_HOST = 'http://localhost:3000';
 function App() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
-    const [trackingClass, setTrackingClass] = useState('2');
+    const [vehicleType, setVehicleType] = useState('car');
     const [confThreshold, setConfThreshold] = useState(0.5);
     const [occludeTime, setOccludeTime] = useState(1.0);
     const [trackedVideoUrl, setTrackedVideoUrl] = useState(null);
@@ -23,9 +23,10 @@ function App() {
     const fileInputRef = useRef(null);
     
     const classOptions = [
-        { label: 'Car', value: '2' },
-        { label: 'Bus', value: '5' },
-        { label: 'Motorbike', value: '3' },
+        { label: 'Ambulance', value: 'ambulance' },
+        { label: 'Car', value: 'car' },
+        { label: 'Bus', value: 'bus' },
+        { label: 'Motorbike', value: 'motorbike' },
     ];
 
     // --- LOGIC FUNCTIONS ---
@@ -33,8 +34,6 @@ function App() {
         try {
             const response = await axios.get(VIDEOS_URL);
             setVideoList(response.data.reverse());
-
-            console.log("Frontend received:", response.data); // <--- Thêm dòng này để soi
         } catch (error) {
             console.error("Failed to fetch video list:", error);
         }
@@ -88,7 +87,7 @@ function App() {
 
         const formData = new FormData();
         formData.append('video', selectedFile);
-        formData.append('trackingClass', trackingClass);
+        formData.append('vehicleType', vehicleType);
         formData.append('confThreshold', confThreshold.toFixed(2));
         formData.append('occludeTime', occludeTime.toFixed(1));
 
@@ -161,8 +160,8 @@ function App() {
                         {classOptions.map(option => (
                             <button
                                 key={option.value}
-                                className={trackingClass === option.value ? 'active' : ''}
-                                onClick={() => setTrackingClass(option.value)}
+                                className={vehicleType === option.value ? 'active' : ''}
+                                onClick={() => setVehicleType(option.value)}
                             >
                                 {option.label}
                             </button>

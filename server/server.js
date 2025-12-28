@@ -43,18 +43,18 @@ app.post('/api/track', upload.single('video'), (req, res) => {
     const originalName = req.file.originalname; 
     const confThreshold = req.body.confThreshold;
     const occludeTime = req.body.occludeTime;
-    const trackingClass = req.body.trackingClass;
+    // const trackingClass = req.body.trackingClass;
+
+    const vehicleType = req.body.vehicleType; // Ví dụ: 'ambulance', 'car', 'bus'
 
     // 1. Lấy tên file gốc và bỏ đuôi .mp4
     // originalName = "snowy (2).mp4" -> nameWithoutExt = "snowy (2)"
     const nameWithoutExt = path.parse(originalName).name; 
 
-    // hardcode modelName
-    const modelName = 'yolov9-t'; 
+    const modelName = vehicleType === 'ambulance' ? 'yolov9-custom' : 'yolov9-t';
 
     // 2. Tạo tên file output theo format: "TênVideo_Model_Confidence_Occlusion.mp4"
     const outputFilename = `${nameWithoutExt}_${modelName}_CONF=${confThreshold}_OCCL=${occludeTime}.mp4`;
-    
     const outputPath = path.join(OUTPUT_DIR, outputFilename);
     
     if (!fs.existsSync(OUTPUT_DIR)) {
@@ -70,7 +70,7 @@ app.post('/api/track', upload.single('video'), (req, res) => {
         inputPath, 
         outputPath, 
         confThreshold, 
-        trackingClass, 
+        vehicleType, 
         occludeTime 
     ], {
         cwd: path.join(__dirname, 'yolov9') 
